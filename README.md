@@ -31,7 +31,7 @@ The environment is chosen in Settings (Development, Staging, Production). Develo
 - The audit log records actions and IDs only, never clinical values.
 
 ## Known gaps
-No separate Dev/QA/Prod build configurations, no localization, no UI tests, no lint run. Background sync is built but only compile-checked; iOS decides when it runs.
+No separate Dev/QA/Prod build configurations, no localization, no lint run. Background sync is built but only compile-checked; iOS decides when it runs.
 
 ## UI tests and CI
 

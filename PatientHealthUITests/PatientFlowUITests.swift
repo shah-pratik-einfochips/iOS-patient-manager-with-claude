@@ -54,7 +54,8 @@ final class PatientFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Export CSV"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Export PDF"].isEnabled)
         app.buttons["Table"].tap()
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'abnormal'")).firstMatch.waitForExistence(timeout: 3)
-                      || app.images["Abnormal value"].firstMatch.exists)
+        // The table row must state the value and flag it in text, not only by colour.
+        let flagged = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '130.0' AND label CONTAINS 'abnormal'"))
+        XCTAssertTrue(flagged.firstMatch.waitForExistence(timeout: 3), "table row should show the 130.0 reading labelled abnormal")
     }
 }
