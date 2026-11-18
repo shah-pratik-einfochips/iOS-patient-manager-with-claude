@@ -114,15 +114,20 @@ struct FHIRClient: FHIRServicing {
                 }
                 if Self.isRetryable(status: response.statusCode), attempt < maxRetries {
                     attempt += 1
-                    try await Task.sleep(nanoseconds: UInt64(retryDelay * pow(2, Double(attempt - 1)) * 1_000_000_000))
+                    try await backoff(attempt: attempt)
                     continue
                 }
                 throw FHIRError.http(response.statusCode)
             } catch let error as URLError where attempt < maxRetries && error.code != .cancelled {
                 attempt += 1
-                try await Task.sleep(nanoseconds: UInt64(retryDelay * pow(2, Double(attempt - 1)) * 1_000_000_000))
+                try await backoff(attempt: attempt)
             }
         }
+    }
+
+    /// Sleeps for an exponentially growing delay before retry number `attempt`.
+    private func backoff(attempt: Int) async throws {
+        try await Task.sleep(nanoseconds: UInt64(retryDelay * pow(2, Double(attempt - 1)) * 1_000_000_000))
     }
 
     /// Decides whether an HTTP status should be retried.

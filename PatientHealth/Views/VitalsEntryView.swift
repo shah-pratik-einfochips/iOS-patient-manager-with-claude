@@ -54,7 +54,7 @@ struct VitalsEntryView: View {
                         Text("Pain level")
                         Spacer()
                         Text(vm.painEntered ? "\(Int(vm.painLevel)) / 10" : "Not set").foregroundStyle(.secondary)
-                        if vm.painEntered && vm.painLevel > 3 { flag }
+                        if vm.painEntered && ValidationService.isAbnormal(vm.painLevel, type: .painLevel) { flag }
                     }
                     Slider(value: Binding(get: { vm.painLevel }, set: { vm.painLevel = $0; vm.painEntered = true }), in: 0...10, step: 1)
                         .accessibilityLabel("Pain level")

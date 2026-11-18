@@ -120,13 +120,9 @@ struct DashboardView: View {
     /// Returns nothing.
     private func export(csv: Bool, records: [VitalRecord]) {
         do {
-            let url: URL
-            if csv {
-                url = try ExportService.csvFile(for: records)
-            } else {
-                url = FileManager.default.temporaryDirectory.appendingPathComponent("vitals-report-\(Int(Date().timeIntervalSince1970)).pdf")
-                try ExportService.pdf(patient: patient, records: records).write(to: url)
-            }
+            let url = csv
+                ? try ExportService.csvFile(for: records)
+                : try ExportService.pdfFile(patient: patient, records: records)
             AuditLogger(context: context).record(csv ? "export.csv" : "export.pdf", detail: patient.id.uuidString)
             shareItem = ShareItem(url: url)
         } catch {
