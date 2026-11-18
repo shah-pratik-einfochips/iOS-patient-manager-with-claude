@@ -16,21 +16,21 @@ struct VitalsEntryView: View {
                 errorLine(vm.dateError)
             }
             Section("Blood Pressure") {
-                numberField("Systolic (mmHg)", text: $vm.systolic, error: vm.systolicError, abnormal: vm.isAbnormal(vm.systolicValue, .systolic))
-                numberField("Diastolic (mmHg)", text: $vm.diastolic, error: vm.diastolicError, abnormal: vm.isAbnormal(vm.diastolicValue, .diastolic))
+                numberField("Systolic (mmHg)", text: $vm.systolic, error: vm.systolicError, abnormal: vm.isAbnormal(.systolic))
+                numberField("Diastolic (mmHg)", text: $vm.diastolic, error: vm.diastolicError, abnormal: vm.isAbnormal(.diastolic))
                 errorLine(vm.pairError)
                 LabeledContent("MAP (auto)") {
                     HStack {
-                        Text(vm.mapValue.map { String(format: "%.1f mmHg", $0) } ?? "—")
-                        if vm.isAbnormal(vm.mapValue, .map) { flag }
+                        Text(vm.mapValue.map { "\($0.oneDecimal) mmHg" } ?? "—")
+                        if vm.isAbnormal(.map) { flag }
                     }
                 }
                 .accessibilityElement(children: .combine)
             }
             Section("Vitals") {
-                numberField("Heart rate (bpm)", text: $vm.heartRate, error: vm.heartRateError, abnormal: vm.isAbnormal(vm.heartRateValue, .heartRate))
-                numberField("Respiratory rate (breaths/min)", text: $vm.respiratoryRate, error: vm.respiratoryError, abnormal: vm.isAbnormal(vm.respiratoryRateValue, .respiratoryRate))
-                numberField("SpO₂ (%)", text: $vm.spo2, error: vm.spo2Error, abnormal: vm.isAbnormal(vm.spo2Value, .spo2))
+                numberField("Heart rate (bpm)", text: $vm.heartRate, error: vm.heartRateError, abnormal: vm.isAbnormal(.heartRate))
+                numberField("Respiratory rate (breaths/min)", text: $vm.respiratoryRate, error: vm.respiratoryError, abnormal: vm.isAbnormal(.respiratoryRate))
+                numberField("SpO₂ (%)", text: $vm.spo2, error: vm.spo2Error, abnormal: vm.isAbnormal(.spo2))
             }
             Section("Body Measurements") {
                 Picker("Height unit", selection: $vm.heightUnit) { ForEach(HeightUnit.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented)
@@ -46,7 +46,7 @@ struct VitalsEntryView: View {
                 numberField("Weight (\(vm.weightUnit.rawValue))", text: $vm.weight, error: vm.weightError, abnormal: false)
                 Picker("Temperature unit", selection: $vm.temperatureUnit) { ForEach(TemperatureUnit.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented)
                 numberField("Temperature (\(vm.temperatureUnit.rawValue))", text: $vm.temperature, error: vm.temperatureError,
-                            abnormal: vm.isAbnormal(vm.temperatureValueC, .temperature))
+                            abnormal: vm.isAbnormal(.temperature))
             }
             Section("Pain & Symptoms") {
                 VStack(alignment: .leading) {
@@ -54,7 +54,7 @@ struct VitalsEntryView: View {
                         Text("Pain level")
                         Spacer()
                         Text(vm.painEntered ? "\(Int(vm.painLevel)) / 10" : "Not set").foregroundStyle(.secondary)
-                        if vm.painEntered && ValidationService.isAbnormal(vm.painLevel, type: .painLevel) { flag }
+                        if vm.isAbnormal(.painLevel) { flag }
                     }
                     Slider(value: Binding(get: { vm.painLevel }, set: { vm.painLevel = $0; vm.painEntered = true }), in: 0...10, step: 1)
                         .accessibilityLabel("Pain level")

@@ -14,6 +14,7 @@ struct DashboardView: View {
 
     var body: some View {
         let records = vm.recent(patient.vitals)
+        let points = vm.points(records, type: vm.selectedType)
         VStack(spacing: 12) {
             HStack {
                 Picker("Vital", selection: $vm.selectedType) { ForEach(VitalType.chartable) { Text($0.title).tag($0) } }
@@ -32,21 +33,21 @@ struct DashboardView: View {
             .accessibilityHint("Opens the share sheet")
 
             if records.isEmpty {
-                ContentUnavailableView("No Vitals in the Last 7 Days", systemImage: "waveform.path.ecg")
+                ContentUnavailableView("No Vitals in the Last \(DashboardViewModel.windowDays) Days", systemImage: "waveform.path.ecg")
             } else {
-                statsView(records)
-                if vm.showChart { chart(records) } else { table(records) }
+                statsView(points)
+                if vm.showChart { chart(points) } else { table(records) }
             }
         }
         .sheet(item: $shareItem) { ShareSheet(url: $0.url) }
-        .alert("Export failed", isPresented: Binding(get: { exportError != nil }, set: { if !$0 { exportError = nil } })) {
+        .alert("Export failed", isPresented: Binding(isPresent: $exportError)) {
             Button("OK", role: .cancel) {}
         } message: { Text(exportError ?? "") }
     }
 
-    private func statsView(_ records: [VitalRecord]) -> some View {
+    private func statsView(_ points: [DashboardViewModel.Point]) -> some View {
         Group {
-            if let s = vm.stats(records, type: vm.selectedType) {
+            if let s = vm.stats(points) {
                 let unit = vm.selectedType.unit
                 HStack {
                     stat("Latest", s.latest, unit, abnormal: ValidationService.isAbnormal(s.latest, type: vm.selectedType))
@@ -61,17 +62,16 @@ struct DashboardView: View {
     private func stat(_ title: String, _ v: Double, _ unit: String, abnormal: Bool = false) -> some View {
         VStack {
             Text(title).font(.caption).foregroundStyle(.secondary)
-            Text(String(format: "%.1f", v) + (abnormal ? " ⚠" : "")).font(.headline).foregroundStyle(abnormal ? .red : .primary)
+            Text(v.oneDecimal + (abnormal ? " ⚠" : "")).font(.headline).foregroundStyle(abnormal ? .red : .primary)
             Text(unit).font(.caption2).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title) \(String(format: "%.1f", v)) \(unit)\(abnormal ? ", abnormal" : "")")
+        .accessibilityLabel(readingLabel(title, v, unit, abnormal: abnormal))
     }
 
-    private func chart(_ records: [VitalRecord]) -> some View {
-        let pts = vm.points(records, type: vm.selectedType)
-        return Chart {
+    private func chart(_ pts: [DashboardViewModel.Point]) -> some View {
+        Chart {
             if let r = vm.selectedType.normalRange {
                 RectangleMark(yStart: .value("Low", r.lowerBound), yEnd: .value("High", r.upperBound))
                     .foregroundStyle(.green.opacity(0.12))
@@ -94,7 +94,7 @@ struct DashboardView: View {
     private func chartSummary(_ pts: [DashboardViewModel.Point]) -> String {
         guard let lo = pts.map(\.value).min(), let hi = pts.map(\.value).max() else { return "\(vm.selectedType.title) line chart, no readings" }
         let unit = vm.selectedType.unit
-        return "\(vm.selectedType.title) line chart, \(pts.count) readings from \(String(format: "%.1f", lo)) to \(String(format: "%.1f", hi)) \(unit), \(pts.filter(\.abnormal).count) abnormal."
+        return "\(vm.selectedType.title) line chart, \(pts.count) readings from \(lo.oneDecimal) to \(hi.oneDecimal) \(unit), \(pts.filter(\.abnormal).count) abnormal."
     }
 
     private func table(_ records: [VitalRecord]) -> some View {
@@ -105,14 +105,19 @@ struct DashboardView: View {
                     ForEach(VitalType.allCases) { t in
                         if let v = r.value(for: t) {
                             let bad = ValidationService.isAbnormal(v, type: t)
-                            Text("\(t.title): \(String(format: "%.1f", v)) \(t.unit)" + (bad ? "  ⚠ abnormal" : ""))
+                            Text("\(t.title): \(v.oneDecimal) \(t.unit)" + (bad ? "  ⚠ abnormal" : ""))
                                 .font(.caption).foregroundStyle(bad ? .red : .primary)
-                                .accessibilityLabel("\(t.title) \(String(format: "%.1f", v)) \(t.unit)\(bad ? ", abnormal" : "")")
+                                .accessibilityLabel(readingLabel(t.title, v, t.unit, abnormal: bad))
                         }
                     }
                 }
             }
         }
+    }
+
+    /// VoiceOver text for one reading, e.g. "Heart Rate 130.0 bpm, abnormal".
+    private func readingLabel(_ title: String, _ v: Double, _ unit: String, abnormal: Bool) -> String {
+        "\(title) \(v.oneDecimal) \(unit)\(abnormal ? ", abnormal" : "")"
     }
 
     /// Exports the visible records and presents the share sheet.

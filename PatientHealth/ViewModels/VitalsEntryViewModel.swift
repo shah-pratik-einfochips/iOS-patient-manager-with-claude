@@ -115,6 +115,24 @@ final class VitalsEntryViewModel {
         return ValidationService.isAbnormal(value, type: type)
     }
 
+    /// `isAbnormal` for the form's own value of a type, so a field can't be checked against the wrong value.
+    func isAbnormal(_ type: VitalType) -> Bool { isAbnormal(value(for: type), type) }
+
+    private func value(for type: VitalType) -> Double? {
+        switch type {
+        case .systolic: systolicValue
+        case .diastolic: diastolicValue
+        case .map: mapValue
+        case .heartRate: heartRateValue
+        case .height: heightValueCm
+        case .weight: weightValueKg
+        case .temperature: temperatureValueC
+        case .respiratoryRate: respiratoryRateValue
+        case .spo2: spo2Value
+        case .painLevel: painEntered ? painLevel : nil
+        }
+    }
+
     /// Builds a VitalRecord in canonical units.
     /// Callers should check canSave first.
     /// Returns an unsaved record.
