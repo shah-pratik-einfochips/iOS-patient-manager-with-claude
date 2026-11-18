@@ -28,10 +28,9 @@ final class PatientFlowUITests: XCTestCase {
         app.buttons["Save"].tap()
 
         // The patient appears in the list; open it.
-        let row = app.buttons["Maya Patel, ID MRN-UI-1"].firstMatch
-        let rowByText = app.staticTexts["Maya Patel"].firstMatch
-        XCTAssertTrue(row.waitForExistence(timeout: 5) || rowByText.waitForExistence(timeout: 5))
-        (row.exists ? row : rowByText).tap()
+        let row = app.staticTexts["Maya Patel"].firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 5), "registered patient should appear in the list")
+        row.tap()
 
         // Record vitals with an abnormal heart rate.
         app.buttons["Enter Vitals"].tap()
