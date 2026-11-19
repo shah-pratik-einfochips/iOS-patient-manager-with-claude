@@ -123,7 +123,7 @@ final class ExportServiceTests: XCTestCase {
     }
     func testCSVEmpty() { XCTAssertEqual(ExportService.csv(for: []).split(separator: "\n").count, 1) }
     func testPDFProducesValidPDF() {
-        let p = Patient(medicalID: "M", firstName: "A", lastName: "B", dateOfBirth: Date(timeIntervalSince1970: 0))
+        let p = TestSupport.patient("M")
         let data = ExportService.pdf(patient: p, records: (0..<80).map { VitalRecord(heartRate: Double(60 + $0 % 50)) })
         XCTAssertEqual(String(data: data.prefix(4), encoding: .ascii), "%PDF")
         XCTAssertGreaterThan(data.count, 1000)

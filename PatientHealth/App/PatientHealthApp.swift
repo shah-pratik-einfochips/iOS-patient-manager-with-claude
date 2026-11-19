@@ -9,7 +9,7 @@ struct PatientHealthApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
-        let schema = Schema([Patient.self, VitalRecord.self, AuditLogEntry.self])
+        let schema = Schema.patientHealth
         let env = ProcessInfo.processInfo
         let inMemory = env.arguments.contains("-uiTestingInMemory") || env.environment["XCTestConfigurationFilePath"] != nil
         if !inMemory, let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {

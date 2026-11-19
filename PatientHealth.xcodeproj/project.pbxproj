@@ -14,11 +14,19 @@
 			remoteGlobalIDString = A10000000000000000000010;
 			remoteInfo = PatientHealth;
 		};
+		A10000000000000000000050 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000010;
+			remoteInfo = PatientHealth;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A10000000000000000000011 /* PatientHealth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PatientHealth.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000012 /* PatientHealthTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PatientHealthTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000051 /* PatientHealthUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PatientHealthUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -30,6 +38,11 @@
 		A10000000000000000000014 /* PatientHealthTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = PatientHealthTests;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000052 /* PatientHealthUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PatientHealthUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -49,6 +62,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000000000000000000053 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -57,6 +77,7 @@
 			children = (
 				A10000000000000000000013 /* PatientHealth */,
 				A10000000000000000000014 /* PatientHealthTests */,
+				A10000000000000000000052 /* PatientHealthUITests */,
 				A10000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,6 +87,7 @@
 			children = (
 				A10000000000000000000011 /* PatientHealth.app */,
 				A10000000000000000000012 /* PatientHealthTests.xctest */,
+				A10000000000000000000051 /* PatientHealthUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -114,6 +136,27 @@
 			productReference = A10000000000000000000012 /* PatientHealthTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		A10000000000000000000056 /* PatientHealthUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1000000000000000000005A /* Build configuration list for PBXNativeTarget "PatientHealthUITests" */;
+			buildPhases = (
+				A10000000000000000000054 /* Sources */,
+				A10000000000000000000053 /* Frameworks */,
+				A10000000000000000000055 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A10000000000000000000057 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000052 /* PatientHealthUITests */,
+			);
+			name = PatientHealthUITests;
+			productName = PatientHealthUITests;
+			productReference = A10000000000000000000051 /* PatientHealthUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -140,6 +183,7 @@
 			targets = (
 				A10000000000000000000010 /* PatientHealth */,
 				A10000000000000000000019 /* PatientHealthTests */,
+				A10000000000000000000056 /* PatientHealthUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -153,6 +197,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A1000000000000000000001B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000055 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -176,6 +227,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000000000000000000054 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -183,6 +241,11 @@
 			isa = PBXTargetDependency;
 			target = A10000000000000000000010 /* PatientHealth */;
 			targetProxy = A10000000000000000000020 /* PBXContainerItemProxy */;
+		};
+		A10000000000000000000057 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000010 /* PatientHealth */;
+			targetProxy = A10000000000000000000050 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -306,6 +369,32 @@
 			};
 			name = Release;
 		};
+		A10000000000000000000058 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.einfochips.PatientHealthUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PatientHealth;
+			};
+			name = Debug;
+		};
+		A10000000000000000000059 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.einfochips.PatientHealthUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PatientHealth;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -332,6 +421,15 @@
 			buildConfigurations = (
 				A10000000000000000000040 /* Debug */,
 				A10000000000000000000041 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1000000000000000000005A /* Build configuration list for PBXNativeTarget "PatientHealthUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000058 /* Debug */,
+				A10000000000000000000059 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

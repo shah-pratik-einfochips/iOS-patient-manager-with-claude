@@ -30,6 +30,15 @@ enum ExportService {
         return url
     }
 
+    /// Writes the PDF report to a temporary file for sharing.
+    /// The file name carries no patient name to avoid leaking PHI via file names.
+    /// Returns the file URL.
+    static func pdfFile(patient: Patient, records: [VitalRecord]) throws -> URL {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("vitals-report-\(Int(Date().timeIntervalSince1970)).pdf")
+        try pdf(patient: patient, records: records).write(to: url)
+        return url
+    }
+
     /// Renders a paginated PDF report.
     /// Includes patient header and a table of vitals, abnormal values in red.
     /// Returns the PDF data.

@@ -179,18 +179,17 @@ final class MockFHIR: FHIRServicing {
 final class SyncServiceTests: XCTestCase {
     var container: ModelContainer!
     override func setUpWithError() throws {
-        container = try ModelContainer(for: Schema([Patient.self, VitalRecord.self, AuditLogEntry.self]),
-                                       configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        container = try TestSupport.inMemoryContainer()
     }
     func testPushRequiresConsent() async {
-        let p = Patient(medicalID: "M1", firstName: "A", lastName: "B", dateOfBirth: Date(timeIntervalSince1970: 0))
+        let p = TestSupport.patient()
         container.mainContext.insert(p)
         let s = SyncService(client: MockFHIR(), context: container.mainContext)
         do { try await s.push(p); XCTFail() } catch { XCTAssertEqual(error as? SyncService.SyncError, .consentRequired) }
         XCTAssertNil(p.fhirID)
     }
     func testPushUploadsPatientAndUnsyncedVitalsOnce() async throws {
-        let p = Patient(medicalID: "M1", firstName: "A", lastName: "B", dateOfBirth: Date(timeIntervalSince1970: 0), consentGiven: true)
+        let p = TestSupport.patient("M1", consent: true)
         container.mainContext.insert(p)
         let v = VitalRecord(heartRate: 70); v.patient = p; container.mainContext.insert(v)
         let mock = MockFHIR(); let s = SyncService(client: mock, context: container.mainContext)
@@ -200,12 +199,12 @@ final class SyncServiceTests: XCTestCase {
         XCTAssertEqual(mock.created.count, 1, "already-synced vitals not re-uploaded")
     }
     func testPullRequiresPriorSync() async {
-        let p = Patient(medicalID: "M1", firstName: "A", lastName: "B", dateOfBirth: Date(timeIntervalSince1970: 0))
+        let p = TestSupport.patient()
         let s = SyncService(client: MockFHIR(), context: container.mainContext)
         do { try await s.pull(p); XCTFail() } catch { XCTAssertEqual(error as? SyncService.SyncError, .notSynced) }
     }
     func testPullMergesRemoteVitalsWithoutDuplicates() async throws {
-        let p = Patient(medicalID: "M1", firstName: "A", lastName: "B", dateOfBirth: Date(timeIntervalSince1970: 0), consentGiven: true)
+        let p = TestSupport.patient("M1", consent: true)
         p.fhirID = "srv1"; container.mainContext.insert(p)
         let when = Date(timeIntervalSince1970: 1_700_000_000)
         let mock = MockFHIR()
@@ -219,8 +218,8 @@ final class SyncServiceTests: XCTestCase {
     }
 
     func testPushAllConsentedSkipsNonConsentedAndCountsFailures() async throws {
-        let a = Patient(medicalID: "A1X", firstName: "A", lastName: "B", dateOfBirth: Date(timeIntervalSince1970: 0), consentGiven: true)
-        let b = Patient(medicalID: "B2X", firstName: "C", lastName: "D", dateOfBirth: Date(timeIntervalSince1970: 0), consentGiven: false)
+        let a = TestSupport.patient("A1X", consent: true)
+        let b = TestSupport.patient("B2X", first: "C", last: "D")
         container.mainContext.insert(a); container.mainContext.insert(b)
         let mock = MockFHIR(); let s = SyncService(client: mock, context: container.mainContext)
         let failures = await s.pushAllConsented()

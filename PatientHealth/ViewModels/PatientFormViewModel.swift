@@ -64,9 +64,7 @@ final class PatientFormViewModel {
         p.allergies = allergies; p.medications = medications; p.conditions = conditions
         p.examPurpose = examPurpose; p.examType = examType
         p.performedBy = performedBy; p.referredBy = referredBy
-        if consentGiven && !p.consentGiven { p.consentDate = Date() }
-        if !consentGiven { p.consentDate = nil }
-        p.consentGiven = consentGiven
+        p.setConsent(consentGiven)
         p.updatedAt = Date()
     }
 
