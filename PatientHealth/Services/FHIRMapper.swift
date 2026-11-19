@@ -63,30 +63,36 @@ enum FHIRMapper {
         Spec(type: .painLevel, code: "72514-3", display: "Pain severity 0-10", ucum: "{score}")
     ]
 
+    // Blood pressure is one panel Observation with systolic/diastolic components, plus MAP on its own.
+    private static let bpPanelCode = "85354-9"
+    private static let bpComponents: [Spec] = [
+        Spec(type: .systolic, code: "8480-6", display: "Systolic blood pressure", ucum: "mm[Hg]"),
+        Spec(type: .diastolic, code: "8462-4", display: "Diastolic blood pressure", ucum: "mm[Hg]")
+    ]
+    private static let meanBP = Spec(type: .map, code: "8478-0", display: "Mean blood pressure", ucum: "mm[Hg]")
+    private static let vitalSignsCategory: [JSON] = [
+        ["coding": [["system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs"]]]
+    ]
+
     /// Builds FHIR Observation resources for a vitals record.
     /// Blood pressure is one panel with systolic/diastolic components; others are one Observation each.
     /// Returns one JSON dictionary per observation.
     static func observations(for record: VitalRecord, patientFHIRID: String) -> [JSON] {
         let subject: JSON = ["reference": "Patient/\(patientFHIRID)"]
         let when = isoFormatter.string(from: record.recordedAt)
-        let category: [JSON] = [["coding": [["system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs"]]]]
         var out: [JSON] = []
 
-        if let s = record.systolic, let d = record.diastolic {
-            out.append([
-                "resourceType": "Observation", "status": "final", "category": category,
-                "code": codeable(loinc: "85354-9", display: "Blood pressure panel"),
-                "subject": subject, "effectiveDateTime": when,
-                "component": [component("8480-6", "Systolic blood pressure", s),
-                              component("8462-4", "Diastolic blood pressure", d)]
-            ])
-            if let map = record.map {
-                out.append(observation(code: "8478-0", display: "Mean blood pressure", value: map, unit: "mm[Hg]", subject: subject, when: when, category: category))
+        if record.systolic != nil, record.diastolic != nil {
+            var panel = envelope(code: bpPanelCode, display: "Blood pressure panel", subject: subject, when: when)
+            panel["component"] = bpComponents.map { c -> JSON in
+                ["code": codeable(loinc: c.code, display: c.display), "valueQuantity": quantity(record.value(for: c.type)!, c.ucum)]
             }
+            out.append(panel)
+            if let map = record.map { out.append(observation(meanBP, value: map, subject: subject, when: when)) }
         }
         for spec in specs {
             guard let v = record.value(for: spec.type) else { continue }
-            out.append(observation(code: spec.code, display: spec.display, value: v, unit: spec.ucum, subject: subject, when: when, category: category))
+            out.append(observation(spec, value: v, subject: subject, when: when))
         }
         return out
     }
@@ -98,26 +104,15 @@ enum FHIRMapper {
         let r = VitalRecord(recordedAt: recordedAt)
         var found = false
         for o in observations {
-            let code = ((o["code"] as? JSON)?["coding"] as? [JSON])?.first?["code"] as? String
-            if code == "85354-9" {
+            let code = firstCode(of: o)
+            if code == bpPanelCode {
                 for c in (o["component"] as? [JSON]) ?? [] {
-                    let cc = ((c["code"] as? JSON)?["coding"] as? [JSON])?.first?["code"] as? String
-                    let v = (c["valueQuantity"] as? JSON)?["value"] as? Double
-                    if cc == "8480-6" { r.systolic = v; found = true }
-                    if cc == "8462-4" { r.diastolic = v; found = true }
+                    guard let spec = bpComponents.first(where: { $0.code == firstCode(of: c) }) else { continue }
+                    r.setValue(quantityValue(of: c), for: spec.type)
+                    found = true
                 }
-            } else if let spec = specs.first(where: { $0.code == code }),
-                      let v = (o["valueQuantity"] as? JSON)?["value"] as? Double {
-                switch spec.type {
-                case .heartRate: r.heartRate = v
-                case .height: r.heightCm = v
-                case .weight: r.weightKg = v
-                case .temperature: r.temperatureC = v
-                case .respiratoryRate: r.respiratoryRate = v
-                case .spo2: r.spo2 = v
-                case .painLevel: r.painLevel = v
-                default: break
-                }
+            } else if let spec = specs.first(where: { $0.code == code }), let v = quantityValue(of: o) {
+                r.setValue(v, for: spec.type)
                 found = true
             }
         }
@@ -132,14 +127,21 @@ enum FHIRMapper {
     private static func quantity(_ v: Double, _ unit: String) -> JSON {
         ["value": v, "unit": unit, "system": ucum, "code": unit]
     }
-    private static func component(_ code: String, _ display: String, _ v: Double) -> JSON {
-        ["code": codeable(loinc: code, display: display), "valueQuantity": quantity(v, "mm[Hg]")]
+    /// Fields every vital-signs Observation shares.
+    private static func envelope(code: String, display: String, subject: JSON, when: String) -> JSON {
+        ["resourceType": "Observation", "status": "final", "category": vitalSignsCategory,
+         "code": codeable(loinc: code, display: display), "subject": subject, "effectiveDateTime": when]
     }
-    private static func observation(code: String, display: String, value: Double, unit: String,
-                                    subject: JSON, when: String, category: [JSON]) -> JSON {
-        ["resourceType": "Observation", "status": "final", "category": category,
-         "code": codeable(loinc: code, display: display), "subject": subject,
-         "effectiveDateTime": when, "valueQuantity": quantity(value, unit)]
+    private static func observation(_ spec: Spec, value: Double, subject: JSON, when: String) -> JSON {
+        var o = envelope(code: spec.code, display: spec.display, subject: subject, when: when)
+        o["valueQuantity"] = quantity(value, spec.ucum)
+        return o
+    }
+    private static func firstCode(of o: JSON) -> String? {
+        ((o["code"] as? JSON)?["coding"] as? [JSON])?.first?["code"] as? String
+    }
+    private static func quantityValue(of o: JSON) -> Double? {
+        (o["valueQuantity"] as? JSON)?["value"] as? Double
     }
 
     static let dateFormatter: DateFormatter = {

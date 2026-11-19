@@ -75,6 +75,13 @@ final class Patient {
         set { examTypeRaw = newValue.rawValue }
     }
     var fullName: String { "\(firstName) \(lastName)" }
+
+    /// Grants or revokes consent: stamps the time when newly granted, clears it when revoked.
+    func setConsent(_ given: Bool, now: Date = Date()) {
+        if given && !consentGiven { consentDate = now }
+        if !given { consentDate = nil }
+        consentGiven = given
+    }
 }
 
 // MARK: - VitalRecord
@@ -139,6 +146,23 @@ final class VitalRecord {
         case .painLevel: painLevel
         }
     }
+
+    /// Sets the value for a measured vital type (the inverse of `value(for:)`).
+    /// MAP is derived from systolic and diastolic, so it cannot be set.
+    func setValue(_ value: Double?, for type: VitalType) {
+        switch type {
+        case .systolic: systolic = value
+        case .diastolic: diastolic = value
+        case .map: assertionFailure("MAP is derived from systolic and diastolic")
+        case .heartRate: heartRate = value
+        case .height: heightCm = value
+        case .weight: weightKg = value
+        case .temperature: temperatureC = value
+        case .respiratoryRate: respiratoryRate = value
+        case .spo2: spo2 = value
+        case .painLevel: painLevel = value
+        }
+    }
 }
 
 // MARK: - AuditLogEntry
@@ -156,4 +180,11 @@ final class AuditLogEntry {
         self.action = action
         self.detail = detail
     }
+}
+
+// MARK: - Schema
+
+extension Schema {
+    /// Every persisted model; shared by the app and the tests so the list can't drift.
+    static var patientHealth: Schema { Schema([Patient.self, VitalRecord.self, AuditLogEntry.self]) }
 }

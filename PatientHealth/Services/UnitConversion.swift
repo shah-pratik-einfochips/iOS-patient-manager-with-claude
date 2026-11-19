@@ -64,4 +64,7 @@ extension Double {
         let p = pow(10.0, Double(places))
         return (self * p).rounded() / p
     }
+
+    /// One-decimal display text ("72.0") used wherever a reading is shown.
+    var oneDecimal: String { String(format: "%.1f", self) }
 }

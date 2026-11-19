@@ -8,12 +8,28 @@ final class ModelTests: XCTestCase {
     var context: ModelContext { container.mainContext }
 
     override func setUpWithError() throws {
-        container = try ModelContainer(for: Schema([Patient.self, VitalRecord.self, AuditLogEntry.self]),
-                                       configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        container = try TestSupport.inMemoryContainer()
     }
 
-    func makePatient() -> Patient { Patient(medicalID: "MRN1", firstName: "Ann", lastName: "Lee", dateOfBirth: Date(timeIntervalSince1970: 0)) }
+    func makePatient() -> Patient { TestSupport.patient("MRN1", first: "Ann", last: "Lee") }
 
+    func testSetConsentStampsKeepsAndClearsTheDate() {
+        let p = makePatient()
+        let first = Date(timeIntervalSince1970: 100)
+        p.setConsent(true, now: first)
+        XCTAssertEqual(p.consentDate, first)
+        p.setConsent(true, now: Date(timeIntervalSince1970: 200))
+        XCTAssertEqual(p.consentDate, first, "re-saving keeps the original consent time")
+        p.setConsent(false)
+        XCTAssertFalse(p.consentGiven); XCTAssertNil(p.consentDate)
+    }
+    func testSetValueIsTheInverseOfValueFor() {
+        let r = VitalRecord()
+        for t in VitalType.allCases where t != .map {
+            r.setValue(42, for: t)
+            XCTAssertEqual(r.value(for: t), 42, "\(t)")
+        }
+    }
     func testPatientDefaultsAndComputed() {
         let p = makePatient()
         XCTAssertEqual(p.fullName, "Ann Lee")
@@ -85,7 +101,7 @@ final class ModelTests: XCTestCase {
     }
     func testEditingOtherPatientToTakenIDIsDuplicate() throws {
         let a = makePatient(); context.insert(a)
-        let b = Patient(medicalID: "MRN2", firstName: "B", lastName: "C", dateOfBirth: Date(timeIntervalSince1970: 0)); context.insert(b)
+        let b = TestSupport.patient("MRN2", first: "B", last: "C"); context.insert(b)
         try context.save()
         XCTAssertTrue(PatientStore.isDuplicateMedicalID("MRN1", excluding: b.id, in: context))
     }

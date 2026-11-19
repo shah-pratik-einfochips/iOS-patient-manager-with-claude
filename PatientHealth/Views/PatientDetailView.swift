@@ -36,7 +36,7 @@ struct PatientDetailView: View {
             }
         }
         .sheet(isPresented: $editing) { PatientFormView(patient: patient) }
-        .alert("Sync", isPresented: Binding(get: { syncMessage != nil }, set: { if !$0 { syncMessage = nil } })) {
+        .alert("Sync", isPresented: Binding(isPresent: $syncMessage)) {
             Button("OK", role: .cancel) {}
         } message: { Text(syncMessage ?? "") }
     }
