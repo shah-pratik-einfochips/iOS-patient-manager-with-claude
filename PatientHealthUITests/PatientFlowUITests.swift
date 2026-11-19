@@ -42,11 +42,12 @@ final class PatientFlowUITests: XCTestCase {
         let dia = app.textFields["Diastolic (mmHg)"]
         dia.tap(); dia.typeText("80")
         XCTAssertTrue(app.images["Abnormal value"].firstMatch.waitForExistence(timeout: 3), "abnormal flag must be exposed to accessibility, not only as colour")
-        // Forms build rows lazily, so scroll the Save button into existence.
+        // Forms build rows lazily, so scroll until the Save button is built and on screen
+        // (it can exist yet sit under the keyboard or below the fold).
         let save = app.buttons["Save Vitals"]
         var swipes = 0
-        while !save.exists && swipes < 8 { app.swipeUp(); swipes += 1 }
-        XCTAssertTrue(save.exists, "Save Vitals button not reachable")
+        while !(save.exists && save.isHittable) && swipes < 8 { app.swipeUp(); swipes += 1 }
+        XCTAssertTrue(save.isHittable, "Save Vitals button not reachable")
         save.tap()
 
         // Saving switches to the dashboard.
